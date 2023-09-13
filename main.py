@@ -28,10 +28,6 @@ class ZombiesSmash:
         icon = pygame.image.load(r'img\logo.webp')
         pygame.display.set_icon(icon)
 
-        # self.bus = pygame.image.load("images/bus.png").convert_alpha()
-        self.pos_x = self.SCREEN_WIDTH -self.background.get_width()
-        self.pos_y = 0
-
         # Font object for displaying text
         self.font_obj = pygame.font.Font('./fonts/Purple Smile.ttf', self.FONT_SIZE)
         # Initialize the zombies's sprite sheet
@@ -44,12 +40,14 @@ class ZombiesSmash:
         self.zombies.append(sprite_sheet.subsurface(722, 0, 120, 100))
         self.zombies.append(sprite_sheet.subsurface(853, 0, 120, 100))
         
-        hammer_sprite_sheet  = pygame.image.load("img/sahammer.png")
-        self.hammers = []
-        self.hammers.append(sprite_sheet.subsurface(42, 10, 100, 168))
-        self.hammers.append(sprite_sheet.subsurface(223, 12, 140, 165))
-        self.hammers.append(sprite_sheet.subsurface(407, 40, 169, 132))
-        self.hammers.append(sprite_sheet.subsurface(573, 50, 178, 105))
+        self.hammer_mouse  = pygame.image.load("img/hammer_mouse.png")
+        self.hammer_smash  = pygame.image.load("img/hammer_smash.png")
+        # hammer_sprite_sheet  = pygame.image.load("img/sahammer.png")
+        # self.hammers = []
+        # self.hammers.append(hammer_sprite_sheet.subsurface(42, 10, 100, 168))
+        # self.hammers.append(hammer_sprite_sheet.subsurface(223, 12, 140, 165))
+        # self.hammers.append(hammer_sprite_sheet.subsurface(407, 40, 169, 132))
+        # self.hammers.append(hammer_sprite_sheet.subsurface(573, 50, 178, 105))
 
         # Positions of the holes in background
         self.hole_positions = []
@@ -88,12 +86,8 @@ class ZombiesSmash:
         if (mouse_x > current_hole_x) and (mouse_x < current_hole_x + self.MOLE_WIDTH) and (mouse_y > current_hole_y) and (mouse_y < current_hole_y + self.MOLE_HEIGHT):
             return True
         else:
-            return False
-
-    def draw_background(self):
-        self.screen.blit(self.background, (int(self.pos_x), int(self.pos_y)))
-        self.screen.blit(self.background, (int(self.pos_x - self.background.get_width()), int(self.pos_y)))
-
+            return False      
+        
     # Update the game states, re-calculate the player's score, misses, level
     def update(self):
         # Update the player's score
@@ -121,40 +115,28 @@ class ZombiesSmash:
     # Start the game's main loop
     # Contains some logic for handling animations, mole hit events, etc..
     async def start(self):
+        hole_num = 0
         cycle_time = 0
         num = -1
         loop = True
-        is_down = False
+        is_down = True
         interval = 0.1
         initial_interval = 1
-        frame_num = 0
-        left = 0
         # Time control variables
         clock = pygame.time.Clock()
         pic = None
-        for i in range(len(self.zombies)):
-            self.zombies[i].set_colorkey((0, 0, 0))
-            self.zombies[i] = self.zombies[i].convert_alpha()
 
         while loop:
             for event in pygame.event.get():
+                click = False
                 if event.type == pygame.QUIT:
                     loop = False
-                if event.type == MOUSEBUTTONDOWN and event.button == self.LEFT_MOUSE_BUTTON:                  
-                    mouse_pos = pygame.mouse.get_pos()
-                    frame_index = 0
-                    
-                    if frame_index < len(self.hammers):
-                        hammer_animation = self.hammers[frame_index]
-                    hammer_rect = hammer_animation.get_rect()
-                    hammer_rect.center = mouse_pos
-                    self.screen.blit(hammer_animation, hammer_rect)
-                    frame_index += 1
-
+                
+                if event.type == MOUSEBUTTONDOWN and event.button == self.LEFT_MOUSE_BUTTON:  
+                    click = True                
                     self.soundEffect.playFire()
-                    if self.is_mole_hit(mouse.get_pos(), self.hole_positions[frame_num]) and num > 0 and left == 0:
+                    if self.is_mole_hit(mouse.get_pos(), self.hole_positions[hole_num]) and num > 0 and is_down == True:
                         num = 3
-                        left = 14
                         is_down = False
                         interval = 0
                         self.score += 1  # Increase player's score
@@ -167,41 +149,40 @@ class ZombiesSmash:
                     else:
                         self.misses += 1
                         self.update()
-
+            
             mil = clock.tick(self.FPS)
             self.screen.fill((0, 0, 0))
-            self.draw_background()  
-            # self.screen.blit(self.bus, (random.randrange(299, 302, 3), 300))
+            self.screen.blit(self.background, (0, 0))
+            pygame.mouse.set_visible(False)
             if pic is not None:
-                self.screen.blit(pic, (self.hole_positions[frame_num][0] - left, self.hole_positions[frame_num][1]))
+                self.screen.blit(pic, (self.hole_positions[hole_num][0], self.hole_positions[hole_num][1]))
+            if click == True:
+                self.screen.blit(self.hammer_smash, pygame.mouse.get_pos())
+            else:
+                self.screen.blit(self.hammer_mouse, pygame.mouse.get_pos())
+                
             self.update()
-            # bg_rect.x = i * bg_width + scroll
-            # pygame.draw.rect(screen, (255, 0, 0), bg_rect, 1)
+            
+
             if num > 5:
-                # self.update_background()
-                # self.screen.blit(self.bus, (random.randrange(299, 302, 3), 300))
-                # self.update()
                 num = -1
                 pic = None
-                left = 0
+                is_down = False
 
             if num == -1:
-                # self.update_background()
-                # self.screen.blit(self.bus, (random.randrange(299, 302, 3), 300))
-                # self.update()
                 num = 0
                 is_down = False
                 interval = 0.5
-                frame_num = random.randint(0, 5)
+                hole_num = random.randint(0, 5)
                 
             sec = mil / 1000.0
             cycle_time += sec
             if cycle_time > interval:
                 # self.update_background()
                 pic = self.zombies[num]
-                self.draw_background()  
-                # self.screen.blit(self.bus, (random.randrange(299, 302, 3), 300))
-                self.screen.blit(pic, (self.hole_positions[frame_num][0] - left, self.hole_positions[frame_num][1]))
+                self.screen.blit(self.background, (0, 0)) 
+                self.screen.blit(pic, (self.hole_positions[hole_num][0], self.hole_positions[hole_num][1]))
+                self.screen.blit(self.hammer_mouse, pygame.mouse.get_pos())
                 self.update()
                 if is_down is False:
                     num += 1
