@@ -1,21 +1,3 @@
-# import pygame, sys
-# from pygame import *
-
-# pygame.init()
-
-# pygame.display.set_caption("Zombies Smash")
-# logo = pygame.image.load(r'img\logo.webp')
-# bg = pygame.image.load(r'img\bg.jpg')
-# pygame.display.set_icon(logo)
-# screen = pygame.display.set_mode((1200, 673))
-# while True:
-#     for event in pygame.event.get():
-#         if event.type == QUIT:
-#             pygame.quit()
-#             sys.exit()
-#         screen.blit(bg,(0,0))
-#         pygame.display.update()
-
 import pygame
 import random
 
@@ -23,12 +5,8 @@ from pygame import *
 import math as mp
 import asyncio
 
-
-class GameManager:
+class ZombiesSmash:
     def __init__(self):
-        # Define constants
-        # self.SCREEN_WIDTH = 800
-        # self.SCREEN_HEIGHT = 600
         self.SCREEN_WIDTH = 1200
         self.SCREEN_HEIGHT = 670
         self.FPS = 60
@@ -38,7 +16,6 @@ class GameManager:
         self.FONT_TOP_MARGIN = 26
         self.LEVEL_SCORE_GAP = 4
         self.LEFT_MOUSE_BUTTON = 1
-        self.GAME_TITLE = "Headshot zombies - Assignment 1"
         
         # Initialize player's score, number of missed hits and level
         self.score = 0
@@ -46,66 +23,43 @@ class GameManager:
         self.level = 1
         # Initialize screen
         self.screen = pygame.display.set_mode((self.SCREEN_WIDTH, self.SCREEN_HEIGHT))
-        pygame.display.set_caption(self.GAME_TITLE)
-
-        # self.background = pygame.image.load("images/4x/bg.png")
+        pygame.display.set_caption("Zombies Smash")
         self.background = pygame.image.load("img/bg3.png")
+        icon = pygame.image.load(r'img\logo.webp')
+        pygame.display.set_icon(icon)
+
         # self.bus = pygame.image.load("images/bus.png").convert_alpha()
         self.pos_x = self.SCREEN_WIDTH -self.background.get_width()
         self.pos_y = 0
-        self.speed_background = 0
 
         # Font object for displaying text
         self.font_obj = pygame.font.Font('./fonts/Purple Smile.ttf', self.FONT_SIZE)
-        # Initialize the mole's sprite sheet
-        # 6 different states
-        sprite_sheet = pygame.image.load("img/mole-01.png")
-        self.mole = []
-        self.mole.append(sprite_sheet.subsurface(270, 0, 120, 100))
-        self.mole.append(sprite_sheet.subsurface(310, 0, 120, 100))
-        self.mole.append(sprite_sheet.subsurface(455, 0, 120, 100))
-        self.mole.append(sprite_sheet.subsurface(580, 0, 120, 100))
-        self.mole.append(sprite_sheet.subsurface(722, 0, 120, 100))
-        self.mole.append(sprite_sheet.subsurface(853, 0, 120, 100))
-        self.mole.append(sprite_sheet.subsurface(853, 0, 120, 100))
-        # self.mole.append(sprite_sheet.subsurface(169, 0, 90, 81))
-        # self.mole.append(sprite_sheet.subsurface(309, 0, 90, 81))
-        # self.mole.append(sprite_sheet.subsurface(449, 0, 90, 81))
-        # self.mole.append(sprite_sheet.subsurface(575, 0, 116, 81))
-        # self.mole.append(sprite_sheet.subsurface(717, 0, 116, 81))
-        # self.mole.append(sprite_sheet.subsurface(853, 0, 116, 81))
-        # self.mole.append(sprite_sheet.subsurface(853, 0, 116, 81))
+        # Initialize the zombies's sprite sheet
+        sprite_sheet = pygame.image.load("img/zombies.png")
+        self.zombies = []
+        self.zombies.append(sprite_sheet.subsurface(853, 0, 120, 100))
+        self.zombies.append(sprite_sheet.subsurface(310, 0, 120, 100))
+        self.zombies.append(sprite_sheet.subsurface(455, 0, 120, 100))
+        self.zombies.append(sprite_sheet.subsurface(580, 0, 120, 100))
+        self.zombies.append(sprite_sheet.subsurface(722, 0, 120, 100))
+        self.zombies.append(sprite_sheet.subsurface(853, 0, 120, 100))
+        
+        hammer_sprite_sheet  = pygame.image.load("img/sahammer.png")
+        self.hammers = []
+        self.hammers.append(sprite_sheet.subsurface(42, 10, 100, 168))
+        self.hammers.append(sprite_sheet.subsurface(223, 12, 140, 165))
+        self.hammers.append(sprite_sheet.subsurface(407, 40, 169, 132))
+        self.hammers.append(sprite_sheet.subsurface(573, 50, 178, 105))
+
         # Positions of the holes in background
         self.hole_positions = []
-        # self.hole_positions.append((100, 227))
-        # self.hole_positions.append((200,227))
-        # self.hole_positions.append((285, 227))
-        # self.hole_positions.append((443, 227))
-        # self.hole_positions.append((534, 227))
-        # self.hole_positions.append((622, 227))
-        # self.hole_positions.append((104,365))
-        # self.hole_positions.append((205,365))
-        # self.hole_positions.append((293, 365))
-        # self.hole_positions.append((448, 365))
-        # self.hole_positions.append((539, 365))
-
-        self.hole_positions.append((383, 481))
-        self.hole_positions.append((475, 525))
-        self.hole_positions.append((575, 525))
-        self.hole_positions.append((720, 525))
-        self.hole_positions.append((820, 525))
-        self.hole_positions.append((900, 525))
-        self.hole_positions.append((380, 660))
-        self.hole_positions.append((475, 660))
-        self.hole_positions.append((575, 660))
-        self.hole_positions.append((720, 660))
-        self.hole_positions.append((820, 663))
-
-        # for i in range(11):
-        #     self.hole_positions.append((820, 663))
-        # Init debugger
-        self.debugger = Debugger("debug")
-        # Sound effects
+        self.hole_positions.append((324, 386))
+        self.hole_positions.append((232, 519))
+        self.hole_positions.append((489, 447))
+        self.hole_positions.append((641, 523))
+        self.hole_positions.append((788, 448))
+        self.hole_positions.append((1012, 409))
+        
         self.soundEffect = SoundEffect()
 
     # Calculate the player level according to his current score & the LEVEL_SCORE_GAP constant
@@ -139,12 +93,6 @@ class GameManager:
     def draw_background(self):
         self.screen.blit(self.background, (int(self.pos_x), int(self.pos_y)))
         self.screen.blit(self.background, (int(self.pos_x - self.background.get_width()), int(self.pos_y)))
-    def update_background(self):      
-        self.draw_background()  
-        self.pos_x += self.speed_background
-        if self.pos_x > self.SCREEN_WIDTH:
-            self.pos_x = self.SCREEN_WIDTH - self.background.get_width()
-
 
     # Update the game states, re-calculate the player's score, misses, level
     def update(self):
@@ -184,17 +132,25 @@ class GameManager:
         # Time control variables
         clock = pygame.time.Clock()
         pic = None
-        for i in range(len(self.mole)):
-            self.mole[i].set_colorkey((0, 0, 0))
-            self.mole[i] = self.mole[i].convert_alpha()
+        for i in range(len(self.zombies)):
+            self.zombies[i].set_colorkey((0, 0, 0))
+            self.zombies[i] = self.zombies[i].convert_alpha()
 
         while loop:
-            # print(self.TILES)
-            
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     loop = False
-                if event.type == MOUSEBUTTONDOWN and event.button == self.LEFT_MOUSE_BUTTON:
+                if event.type == MOUSEBUTTONDOWN and event.button == self.LEFT_MOUSE_BUTTON:                  
+                    mouse_pos = pygame.mouse.get_pos()
+                    frame_index = 0
+                    
+                    if frame_index < len(self.hammers):
+                        hammer_animation = self.hammers[frame_index]
+                    hammer_rect = hammer_animation.get_rect()
+                    hammer_rect.center = mouse_pos
+                    self.screen.blit(hammer_animation, hammer_rect)
+                    frame_index += 1
+
                     self.soundEffect.playFire()
                     if self.is_mole_hit(mouse.get_pos(), self.hole_positions[frame_num]) and num > 0 and left == 0:
                         num = 3
@@ -212,11 +168,9 @@ class GameManager:
                         self.misses += 1
                         self.update()
 
-            if (pygame.mixer.music.get_pos() / 1000 > 39):
-                self.speed_background = 10
             mil = clock.tick(self.FPS)
             self.screen.fill((0, 0, 0))
-            self.update_background()
+            self.draw_background()  
             # self.screen.blit(self.bus, (random.randrange(299, 302, 3), 300))
             if pic is not None:
                 self.screen.blit(pic, (self.hole_positions[frame_num][0] - left, self.hole_positions[frame_num][1]))
@@ -238,15 +192,14 @@ class GameManager:
                 num = 0
                 is_down = False
                 interval = 0.5
-                frame_num = random.randint(0, 10)
-
+                frame_num = random.randint(0, 5)
                 
             sec = mil / 1000.0
             cycle_time += sec
             if cycle_time > interval:
                 # self.update_background()
-                pic = self.mole[num]
-                self.update_background()
+                pic = self.zombies[num]
+                self.draw_background()  
                 # self.screen.blit(self.bus, (random.randrange(299, 302, 3), 300))
                 self.screen.blit(pic, (self.hole_positions[frame_num][0] - left, self.hole_positions[frame_num][1]))
                 self.update()
@@ -267,20 +220,6 @@ class GameManager:
             # Update the display
             pygame.display.flip()
             await asyncio.sleep(0)
-
-
-
-
-
-# The Debugger class - use this class for printing out debugging information
-class Debugger:
-    def __init__(self, mode):
-        self.mode = mode
-
-    def log(self, message):
-        if self.mode == "debug":
-            print("> DEBUG: " + str(message))
-
 
 class SoundEffect:
     def __init__(self):
@@ -316,13 +255,11 @@ class SoundEffect:
     def stopLevelUp(self):
         self.levelSound.stop()
 
-###############################################################
 # Initialize the game
 pygame.mixer.init(frequency=22050, size=-16, channels=2, buffer=512)
 pygame.init()
 
-# Run the main loop
-my_game = GameManager()
+my_game = ZombiesSmash()
 asyncio.run(my_game.start())
-# Exit the game if the main loop ends
+
 pygame.quit()
