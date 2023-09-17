@@ -21,9 +21,12 @@ class ZombiesSmash:
         
         # Initialize player's score, number of missed hits and level
         self.score = 0
+        self.total = -1
+        self.misszombie = 0
         self.misses = 0
         self.level = 1
         self.is_playing = False
+        self.status = 0
         # Initialize screen
         self.screen = pygame.display.set_mode((self.SCREEN_WIDTH, self.SCREEN_HEIGHT))
         pygame.display.set_caption("Zombies Smash")
@@ -35,6 +38,8 @@ class ZombiesSmash:
         self.start_button_y = 230
         self.start_button_width = 140
         self.start_button_height = 58
+        self.con_button_width = 220
+        self.con_button_height = 58
 
         # Font object for displaying text
         self.font_obj = pygame.font.Font("./fonts/PS.ttf", self.FONT_SIZE)
@@ -77,21 +82,51 @@ class ZombiesSmash:
         return rect_x <= point_x <= rect_x + rect_width and rect_y <= point_y <= rect_y + rect_height
     
     def draw_start_screen(self):
-        mouse_x, mouse_y = pygame.mouse.get_pos()
-        if self.check_start_button_click(mouse_x, mouse_y):
+        if self.status == 0:
+            mouse_x, mouse_y = pygame.mouse.get_pos()
             self.screen.blit(self.start_bg, (0, 0))
-            start_text_surface = self.font_start.render("Start", True, (255, 0, 0))
+            if self.check_start_button_click(mouse_x, mouse_y):
+                start_text_surface = self.font_start.render("Start", True, (255, 0, 0))
+            else:
+                start_text_surface = self.font_start.render("Start", True, (220, 220, 220))
             self.screen.blit(start_text_surface, (self.start_button_x, self.start_button_y))
-        else:
+            pygame.display.flip()
+        elif self.status == 1:
+            mouse_x, mouse_y = pygame.mouse.get_pos()
             self.screen.blit(self.start_bg, (0, 0))
-            start_text_surface = self.font_start.render("Start", True, (220, 220, 220))
+            if self.check_con_button_click(mouse_x, mouse_y):
+                start_text_surface = self.font_start.render("Continue", True, (220, 220, 220))
+            else:
+                start_text_surface = self.font_start.render("Continue", True, (255, 0, 0))
+            self.screen.blit(start_text_surface, (self.start_button_x, self.start_button_y))                
+            pygame.display.flip()
+        elif self.status == 2:
+            mouse_x, mouse_y = pygame.mouse.get_pos()
+            self.screen.blit(self.background, (0, 0))
+            current_score_string = "GAME OVER - SCORE: " + str(self.score)
+            score_text = self.font_obj.render(current_score_string, True, (255, 255, 0))
+            score_text_pos = score_text.get_rect()
+            score_text_pos.centerx = self.SCREEN_WIDTH / 8 * 4
+            score_text_pos.centery = self.SCREEN_HEIGHT / 4 * 2
+            self.screen.blit(score_text, score_text_pos)
+            if self.check_con_button_click(mouse_x, mouse_y):
+                start_text_surface = self.font_start.render("Play again", True, (220, 220, 220))
+            else:
+                start_text_surface = self.font_start.render("Play again", True, (255, 0, 0))
             self.screen.blit(start_text_surface, (self.start_button_x, self.start_button_y))
-        pygame.display.flip()
+            self.update()
+            pygame.display.flip()
 
     def check_start_button_click(self, mouse_x, mouse_y):
         if self.is_point_inside_rect(mouse_x, mouse_y, self.start_button_x, self.start_button_y, self.start_button_width, self.start_button_height):
             return True
         return False
+    
+    def check_con_button_click(self, mouse_x, mouse_y):
+        if self.is_point_inside_rect(mouse_x, mouse_y, self.start_button_x, self.start_button_y, self.con_button_width, self.con_button_height):
+            return True
+        return False
+    
 
     def get_player_level(self):
         newLevel = 1 + int(self.score / self.LEVEL_SCORE_GAP)
@@ -122,6 +157,13 @@ class ZombiesSmash:
         
     # Update the game states, re-calculate the player's score, misses, level
     def update(self):
+        # Update the player's miss zombie
+        current_score_string = "MISSED ZOMBIE: " + str(self.misszombie)
+        score_text = self.font_obj.render(current_score_string, True, (128, 128, 128))
+        score_text_pos = score_text.get_rect()
+        score_text_pos.centerx = self.SCREEN_WIDTH / 5 * 4
+        score_text_pos.centery = self.FONT_TOP_MARGIN
+        self.screen.blit(score_text, score_text_pos)
         # Update the player's score
         current_score_string = "SCORE: " + str(self.score)
         score_text = self.font_obj.render(current_score_string, True, (255, 255, 0))
@@ -133,7 +175,7 @@ class ZombiesSmash:
         current_misses_string = "MISSES: " + str(self.misses)
         misses_text = self.font_obj.render(current_misses_string, True, (255, 0, 0))
         misses_text_pos = misses_text.get_rect()
-        misses_text_pos.centerx = self.SCREEN_WIDTH / 5 * 4
+        misses_text_pos.centerx = self.SCREEN_WIDTH / 5 * 2
         misses_text_pos.centery = self.FONT_TOP_MARGIN
         self.screen.blit(misses_text, misses_text_pos)
         # Update the player's level
@@ -145,6 +187,12 @@ class ZombiesSmash:
         self.screen.blit(level_text, level_text_pos)
 
     async def start(self):
+        if self.status == 2 or self.status == 0:
+            self.score = 0
+            self.total = -1
+            self.misszombie = 0
+            self.misses = 0
+            self.level = 1 
         hole_num = 0
         cycle_time = 0
         num = -1
@@ -156,23 +204,35 @@ class ZombiesSmash:
         clock = pygame.time.Clock()
         pic = None
         click = False
-        click_point = False
-        
+        click_point = False     
+                
         while self.is_playing:
-            for event in pygame.event.get():
+            # misszombie - 1
+            if self.misszombie == 10 or self.misses == 100:
+                self.status = 2
+                self.is_playing = False
+            mil = clock.tick(self.FPS)
+            for event in pygame.event.get():  
                 click = False
+                click_point = False                                  
+                                  
                 if event.type == pygame.QUIT:
+                    self.status = 0
                     self.screen = pygame.display.set_mode((self.START_SCREEN_WIDTH, self.START_SCREEN_HEIGHT))
                     self.is_playing = False
-
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_ESCAPE:  
+                        self.is_playing = False
+                        self.status = 1
+                    
                 pygame.mouse.set_visible(False)
                 if event.type == MOUSEBUTTONDOWN and event.button == self.LEFT_MOUSE_BUTTON:  
                     click = True                
-                    self.soundEffect.playFire()
                     self.screen.blit(self.hammer_smash, pygame.mouse.get_pos())
+                    self.soundEffect.playFire()
                     if self.is_zombie_hit(mouse.get_pos(), self.hole_positions[hole_num]) and num > 0 and is_down == True:
-                        # self.screen.blit(self.star_point, (pygame.mouse.get_pos()[0] - 50, pygame.mouse.get_pos()[1] - 90))
                         click_point = True
+                        self.screen.blit(self.star_point, (pygame.mouse.get_pos()[0] - 50, pygame.mouse.get_pos()[1] - 90))
                         num = 3
                         is_down = False
                         interval = 0
@@ -181,21 +241,20 @@ class ZombiesSmash:
                         # Stop popping sound effect
                         self.soundEffect.stopPop()
                         # Play hurt sound
-                        self.soundEffect.playHurt()                                    
+                        self.soundEffect.playHurt() 
+                        self.update()                              
                     else:
                         self.misses += 1
                         self.update()
             
-            mil = clock.tick(self.FPS)
             self.screen.fill((0, 0, 0))
             self.screen.blit(self.background, (0, 0))
             if pic is not None:
                 self.screen.blit(pic, (self.hole_positions[hole_num][0], self.hole_positions[hole_num][1]))
-            
             if click == True:
                 self.screen.blit(self.hammer_smash, pygame.mouse.get_pos())
-                # if click_point == True:
-                    # self.screen.blit(self.star_point, (pygame.mouse.get_pos()[0] - 50, pygame.mouse.get_pos()[1] - 90))
+                if click_point == True:
+                    self.screen.blit(self.star_point, (pygame.mouse.get_pos()[0] - 50, pygame.mouse.get_pos()[1] - 90))
             else:
                 self.screen.blit(self.hammer_mouse, pygame.mouse.get_pos()) 
             self.update()
@@ -210,6 +269,8 @@ class ZombiesSmash:
                 is_down = False
                 interval = 0.5
                 hole_num = random.randint(0, 5)
+                self.total += 1
+                self.misszombie = self.total - self.score
                 
             sec = mil / 1000.0
             cycle_time += sec 
@@ -220,10 +281,8 @@ class ZombiesSmash:
                 self.screen.blit(pic, (self.hole_positions[hole_num][0], self.hole_positions[hole_num][1])) 
                 if click == True:
                     self.screen.blit(self.hammer_smash, pygame.mouse.get_pos())
-                    # if click_point == True:
-                    #     # self.screen.blit(self.star_point, (pygame.mouse.get_pos()[0] - 50, pygame.mouse.get_pos()[1] - 90))
-                    # else: 
-                    #     self.screen.blit(self.zombies[0], (pygame.mouse.get_pos()[0] - 50, pygame.mouse.get_pos()[1] - 90))
+                    if click_point == True:
+                        self.screen.blit(self.star_point, (pygame.mouse.get_pos()[0] - 50, pygame.mouse.get_pos()[1] - 90))
                 else:
                     self.screen.blit(self.hammer_mouse, pygame.mouse.get_pos()) 
                 self.update()
@@ -243,7 +302,7 @@ class ZombiesSmash:
                     interval = 0.12
                 cycle_time = 0
             # Update the display
-            
+                
             pygame.display.flip()
 
     async def menu(self):
@@ -256,8 +315,11 @@ class ZombiesSmash:
                 elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
                     if not self.is_playing:
                         mouse_x, mouse_y = pygame.mouse.get_pos()
-                        if self.check_start_button_click(mouse_x, mouse_y):
+                        if self.check_start_button_click(mouse_x, mouse_y) and self.status == 0:
                             self.is_playing = True
+                        elif self.check_con_button_click(mouse_x, mouse_y) and (self.status == 1 or self.status == 2):
+                            self.is_playing = True
+
 
             self.screen.fill((0, 0, 0))
 
