@@ -348,7 +348,7 @@ class SoundEffect:
         self.startSound = pygame.mixer.Sound("sounds/start.mp3")
         self.rungSound = pygame.mixer.music.load("sounds/rung.mp3")
         self.fireSound = pygame.mixer.Sound("sounds/fire.wav")
-        self.fireSound.set_volume(0.5)
+        self.fireSound.set_volume(1)
         self.popSound = pygame.mixer.Sound("sounds/pop.wav")
         self.hurtSound = pygame.mixer.Sound("sounds/hurt.wav")
         self.levelSound = pygame.mixer.Sound("sounds/point.wav")
