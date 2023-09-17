@@ -323,12 +323,12 @@ class ZombiesSmash:
                     if not self.is_playing:
                         mouse_x, mouse_y = pygame.mouse.get_pos()
                         if self.check_start_button_click(mouse_x, mouse_y) and self.status == 0: 
-                            pygame.mixer.music.load("sounds/themesong.wav")
+                            pygame.mixer.music.load("sounds/silent.mp3")
                             pygame.mixer.music.play(-1)                         
                             self.is_playing = True
                         elif self.check_con_button_click(mouse_x, mouse_y) and (self.status == 1 or self.status == 2):
                             if self.status == 2:
-                                pygame.mixer.music.load("sounds/themesong.wav")
+                                pygame.mixer.music.load("sounds/silent.mp3")
                                 pygame.mixer.music.play(-1)
                             self.is_playing = True
             self.screen.fill((0, 0, 0))
@@ -344,11 +344,11 @@ class ZombiesSmash:
 
 class SoundEffect:
     def __init__(self):
-        self.mainTrack = pygame.mixer.Sound("sounds/themesong.wav")
+        self.mainTrack = pygame.mixer.Sound("sounds/silent.mp3")
         self.startSound = pygame.mixer.Sound("sounds/start.mp3")
         self.rungSound = pygame.mixer.music.load("sounds/rung.mp3")
         self.fireSound = pygame.mixer.Sound("sounds/fire.wav")
-        self.fireSound.set_volume(1.0)
+        self.fireSound.set_volume(0.5)
         self.popSound = pygame.mixer.Sound("sounds/pop.wav")
         self.hurtSound = pygame.mixer.Sound("sounds/hurt.wav")
         self.levelSound = pygame.mixer.Sound("sounds/point.wav")
