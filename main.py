@@ -212,11 +212,11 @@ class ZombiesSmash:
                 self.status = 2
                 self.is_playing = False
             mil = clock.tick(self.FPS)
-            for event in pygame.event.get():  
-                click = False
-                click_point = False                                  
-                                  
+            
+            for event in pygame.event.get():                                   
                 if event.type == pygame.QUIT:
+                    pygame.mixer.music.load("sounds/rung.mp3")
+                    pygame.mixer.music.play(-1)
                     self.status = 0
                     self.screen = pygame.display.set_mode((self.START_SCREEN_WIDTH, self.START_SCREEN_HEIGHT))
                     self.is_playing = False
@@ -224,19 +224,19 @@ class ZombiesSmash:
                     if event.key == pygame.K_ESCAPE:  
                         self.is_playing = False
                         self.status = 1
-                    
+
                 pygame.mouse.set_visible(False)
                 if event.type == MOUSEBUTTONDOWN and event.button == self.LEFT_MOUSE_BUTTON:  
-                    click = True                
-                    self.screen.blit(self.hammer_smash, pygame.mouse.get_pos())
                     self.soundEffect.playFire()
+                    click = True               
+                    self.screen.blit(self.zombies[4], pygame.mouse.get_pos())
+                    
                     if self.is_zombie_hit(mouse.get_pos(), self.hole_positions[hole_num]) and num > 0 and is_down == True:
                         click_point = True
-                        self.screen.blit(self.star_point, (pygame.mouse.get_pos()[0] - 50, pygame.mouse.get_pos()[1] - 90))
                         num = 3
                         is_down = False
                         interval = 0
-                        self.score += 1  # Increase player's score
+                        self.score += 1  # Increase player's score                            
                         self.level = self.get_player_level()  # Calculate player's level
                         # Stop popping sound effect
                         self.soundEffect.stopPop()
@@ -246,6 +246,9 @@ class ZombiesSmash:
                     else:
                         self.misses += 1
                         self.update()
+                else:
+                    click = False
+                    click_point = False 
             
             self.screen.fill((0, 0, 0))
             self.screen.blit(self.background, (0, 0))
@@ -257,6 +260,7 @@ class ZombiesSmash:
                     self.screen.blit(self.star_point, (pygame.mouse.get_pos()[0] - 50, pygame.mouse.get_pos()[1] - 90))
             else:
                 self.screen.blit(self.hammer_mouse, pygame.mouse.get_pos()) 
+
             self.update()
             # Start cycle
             if num > 5:
@@ -279,14 +283,6 @@ class ZombiesSmash:
                 pic = self.zombies[num]
                 self.screen.blit(self.background, (0, 0)) 
                 self.screen.blit(pic, (self.hole_positions[hole_num][0], self.hole_positions[hole_num][1])) 
-                if click == True:
-                    self.screen.blit(self.hammer_smash, pygame.mouse.get_pos())
-                    if click_point == True:
-                        self.screen.blit(self.star_point, (pygame.mouse.get_pos()[0] - 50, pygame.mouse.get_pos()[1] - 90))
-                else:
-                    self.screen.blit(self.hammer_mouse, pygame.mouse.get_pos()) 
-                self.update()
-
                 if is_down is False:
                     num += 1
                 else:
@@ -301,6 +297,17 @@ class ZombiesSmash:
                 else:
                     interval = 0.12
                 cycle_time = 0
+                
+                if click == True:
+                    self.screen.blit(self.hammer_smash, pygame.mouse.get_pos())
+                    if click_point == True:
+                        self.screen.blit(self.star_point, (pygame.mouse.get_pos()[0] - 50, pygame.mouse.get_pos()[1] - 90))
+                else:
+                    self.screen.blit(self.hammer_mouse, pygame.mouse.get_pos()) 
+                    
+                self.update()
+
+                
             # Update the display
                 
             pygame.display.flip()
@@ -315,14 +322,16 @@ class ZombiesSmash:
                 elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
                     if not self.is_playing:
                         mouse_x, mouse_y = pygame.mouse.get_pos()
-                        if self.check_start_button_click(mouse_x, mouse_y) and self.status == 0:
+                        if self.check_start_button_click(mouse_x, mouse_y) and self.status == 0: 
+                            pygame.mixer.music.load("sounds/themesong.wav")
+                            pygame.mixer.music.play(-1)                         
                             self.is_playing = True
                         elif self.check_con_button_click(mouse_x, mouse_y) and (self.status == 1 or self.status == 2):
+                            if self.status == 2:
+                                pygame.mixer.music.load("sounds/themesong.wav")
+                                pygame.mixer.music.play(-1)
                             self.is_playing = True
-
-
             self.screen.fill((0, 0, 0))
-
             if self.is_playing:
                 self.screen = pygame.display.set_mode((self.SCREEN_WIDTH, self.SCREEN_HEIGHT))
                 await self.start()
@@ -335,7 +344,9 @@ class ZombiesSmash:
 
 class SoundEffect:
     def __init__(self):
-        self.mainTrack = pygame.mixer.music.load("sounds/themesong.wav")
+        self.mainTrack = pygame.mixer.Sound("sounds/themesong.wav")
+        self.startSound = pygame.mixer.Sound("sounds/start.mp3")
+        self.rungSound = pygame.mixer.music.load("sounds/rung.mp3")
         self.fireSound = pygame.mixer.Sound("sounds/fire.wav")
         self.fireSound.set_volume(1.0)
         self.popSound = pygame.mixer.Sound("sounds/pop.wav")
@@ -343,6 +354,16 @@ class SoundEffect:
         self.levelSound = pygame.mixer.Sound("sounds/point.wav")
         pygame.mixer.music.play(-1)
 
+    def playStart(self):
+        self.startSound.play()
+    def stopStart(self):
+        self.startSound.stop()
+        
+    def playRung(self):
+        self.rungSound.play()
+    def stopRung(self):
+        self.rungSound.stop()
+        
     def playFire(self):
         self.fireSound.play()
 
