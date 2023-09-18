@@ -209,6 +209,7 @@ class ZombiesSmash:
         while self.is_playing:
             # misszombie - 1
             if self.misszombie == 10 or self.misses == 100:
+                self.soundEffect.playGameover()
                 self.status = 2
                 self.is_playing = False
             mil = clock.tick(self.FPS)
@@ -225,6 +226,9 @@ class ZombiesSmash:
                         self.is_playing = False
                         self.status = 1
 
+                click = False
+                click_point = False
+                
                 pygame.mouse.set_visible(False)
                 if event.type == MOUSEBUTTONDOWN and event.button == self.LEFT_MOUSE_BUTTON:  
                     self.soundEffect.playFire()
@@ -232,6 +236,7 @@ class ZombiesSmash:
                     self.screen.blit(self.zombies[4], pygame.mouse.get_pos())
                     
                     if self.is_zombie_hit(mouse.get_pos(), self.hole_positions[hole_num]) and num > 0 and is_down == True:
+                        click = True  
                         click_point = True
                         num = 3
                         is_down = False
@@ -245,10 +250,7 @@ class ZombiesSmash:
                         self.update()                              
                     else:
                         self.misses += 1
-                        self.update()
-                else:
-                    click = False
-                    click_point = False 
+                        self.update()                     
             
             self.screen.fill((0, 0, 0))
             self.screen.blit(self.background, (0, 0))
@@ -256,11 +258,11 @@ class ZombiesSmash:
                 self.screen.blit(pic, (self.hole_positions[hole_num][0], self.hole_positions[hole_num][1]))
             if click == True:
                 self.screen.blit(self.hammer_smash, pygame.mouse.get_pos())
-                if click_point == True:
-                    self.screen.blit(self.star_point, (pygame.mouse.get_pos()[0] - 50, pygame.mouse.get_pos()[1] - 90))
+                # if click_point == True:
+                #     self.screen.blit(self.star_point, (pygame.mouse.get_pos()[0] - 50, pygame.mouse.get_pos()[1] - 90))
             else:
                 self.screen.blit(self.hammer_mouse, pygame.mouse.get_pos()) 
-
+            
             self.update()
             # Start cycle
             if num > 5:
@@ -277,7 +279,7 @@ class ZombiesSmash:
                 self.misszombie = self.total - self.score
                 
             sec = mil / 1000.0
-            cycle_time += sec 
+            cycle_time += sec
             
             if cycle_time > interval:
                 pic = self.zombies[num]
@@ -300,8 +302,8 @@ class ZombiesSmash:
                 
                 if click == True:
                     self.screen.blit(self.hammer_smash, pygame.mouse.get_pos())
-                    if click_point == True:
-                        self.screen.blit(self.star_point, (pygame.mouse.get_pos()[0] - 50, pygame.mouse.get_pos()[1] - 90))
+                    # if click_point == True:
+                    #     self.screen.blit(self.star_point, (pygame.mouse.get_pos()[0] - 50, pygame.mouse.get_pos()[1] - 90))
                 else:
                     self.screen.blit(self.hammer_mouse, pygame.mouse.get_pos()) 
                     
@@ -350,10 +352,13 @@ class SoundEffect:
         self.fireSound = pygame.mixer.Sound("sounds/fire.wav")
         self.fireSound.set_volume(1)
         self.popSound = pygame.mixer.Sound("sounds/pop.wav")
-        self.hurtSound = pygame.mixer.Sound("sounds/hurt.wav")
-        self.levelSound = pygame.mixer.Sound("sounds/point.wav")
+        self.hurtSound = pygame.mixer.Sound("sounds/point.wav")
+        self.levelSound = pygame.mixer.Sound("sounds/levelup.mp3")
+        self.gameOver = pygame.mixer.Sound("sounds/gameover.wav")
         pygame.mixer.music.play(-1)
 
+    def playGameover(self):
+        self.gameOver.play()
     def playStart(self):
         self.startSound.play()
     def stopStart(self):
